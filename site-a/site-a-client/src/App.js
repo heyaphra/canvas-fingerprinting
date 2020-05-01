@@ -1,10 +1,24 @@
 import React, { Component } from "react";
+import * as firebase from "firebase/app";
+import "firebase/firestore";
 import { Canvas } from "responsive-react-canvas-hoc";
 import crypto from "crypto";
 import "./App.css";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyBfrrI8p0OP4mwl0syzg7Ub5hBRE3gg5GM",
+  authDomain: "cybsersec-fingerprinting.firebaseapp.com",
+  databaseURL: "https://cybsersec-fingerprinting.firebaseio.com",
+  projectId: "cybsersec-fingerprinting",
+  storageBucket: "cybsersec-fingerprinting.appspot.com",
+  messagingSenderId: "692182605160",
+  appId: "1:692182605160:web:b9c8e5d38e0ab433000add",
+};
+
 class FingerprintCanvas extends Component {
-  userBehavior = {};
+  state = {};
+
+  profile = {};
 
   timer = {
     start: () => {
@@ -20,32 +34,53 @@ class FingerprintCanvas extends Component {
   };
 
   handleInput = (e) => {
-    console.log(e.target.value);
+    this.setState({
+      name: e.target.value,
+    });
   };
 
   componentDidMount() {
-    const { timer } = this;
-    // window.addEventListener("beforeunload", (event) => {
-    //   this.userBehavior.elapsedTime = timer.end();
-    //   localStorage.setItem(
-    //     "canvasFingerprint",
-    //     JSON.stringify(this.userBehavior)
-    //   );
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    this.db = firebase.firestore();
+
+    // Get all fingerprints from DB
+    // this.db.collection("fingerprints").onSnapshot((snapshot) => {
+    //   const allFingerprints = snapshot.docs.map((doc) => ({
+    //     id: doc.id,
+    //     ...doc.data(),
+    //   }));
+    //   console.log(allFingerprints);
     // });
+
+    this.timer.start();
   }
 
-  tagUser = (stage) => {
-    const fingerprint = this.createFingerprint(stage);
-    if (localStorage.getItem("canvasFingerprint")) {
-      console.log(localStorage.getItem("canvasFingerprint"));
-      console.log(fingerprint);
-      console.log(fingerprint === localStorage.getItem("canvasFingerprint"));
-    } else {
-      localStorage.setItem("canvasFingerprint", fingerprint);
-    }
+  handleSubmit = (event) => {
+    event.preventDefault();
+    this.tagUser();
+    // Redirect to exhibit B
+  };
+
+  tagUser = () => {
+    const {
+      timer,
+      state: { name },
+      canvas,
+    } = this;
+    const fingerprint = this.createFingerprint(canvas);
+    const elapsedTime = timer.end();
+    const profile = {
+      elapsedTime,
+      name,
+      hash: fingerprint,
+    };
+    // localStorage.setItem("canvasFingerprint", JSON.stringify(profile));
+    this.db.collection("fingerprints").add(profile);
   };
 
   renderGraphics = ({ canvas, ctx, width, height }) => {
+    this.canvas = canvas;
     // White background
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, width, height);
@@ -68,7 +103,7 @@ class FingerprintCanvas extends Component {
     ctx.fillText("Big smile!", width / 2, height / 1.5);
   };
 
-  createFingerprint = ({ canvas }) => {
+  createFingerprint = (canvas) => {
     const imageData = canvas.toDataURL();
     return crypto.createHash("sha256").update(imageData).digest("hex");
   };
@@ -80,7 +115,7 @@ class FingerprintCanvas extends Component {
         <Canvas
           style={{
             border: "1px solid #ccc",
-            display: hidden ? "none" : "inline-block",
+            visibility: hidden ? "hidden" : "visible",
           }}
           onMount={this.renderGraphics}
           onResize={() => false}
@@ -90,14 +125,8 @@ class FingerprintCanvas extends Component {
         <br />
         <form>
           <small>What's your name?</small>{" "}
-          <input
-            type="text"
-            onFocus={this.timer.start}
-            onChange={this.handleInput}
-          />
-          <button onClick={() => console.log("Going to Site B!")}>
-            Let's go!
-          </button>
+          <input type="text" onChange={this.handleInput} />
+          <button onClick={this.handleSubmit}>Let's go!</button>
         </form>
       </>
     );
@@ -112,14 +141,14 @@ class App extends Component {
     const { name, hidden } = this.state;
     return (
       <div className="App">
-        <header><h1>Exhibit A</h1></header>
+        <header>
+          <h1>Exhibit A</h1>
+        </header>
         <small style={{ marginBottom: "2vh" }}>
           Psst!{" "}
           <span
             style={{ textDecoration: "underline" }}
-            onClick={() =>
-              this.setState({ hidden: !hidden }, () => console.log(this.state))
-            }
+            onClick={() => this.setState({ hidden: !hidden })}
           >
             Click here
           </span>{" "}
