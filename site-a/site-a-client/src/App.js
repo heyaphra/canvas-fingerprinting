@@ -1,21 +1,10 @@
 import React, { Component } from "react";
-import * as firebase from "firebase/app";
-import "firebase/firestore";
 import { Canvas } from "responsive-react-canvas-hoc";
 import crypto from "crypto";
+import Firebase from "./Firebase";
 import "./App.css";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfrrI8p0OP4mwl0syzg7Ub5hBRE3gg5GM",
-  authDomain: "cybsersec-fingerprinting.firebaseapp.com",
-  databaseURL: "https://cybsersec-fingerprinting.firebaseio.com",
-  projectId: "cybsersec-fingerprinting",
-  storageBucket: "cybsersec-fingerprinting.appspot.com",
-  messagingSenderId: "692182605160",
-  appId: "1:692182605160:web:b9c8e5d38e0ab433000add",
-};
-
-class FingerprintCanvas extends Component {
+class Fingerprintr extends Component {
   state = {};
 
   profile = {};
@@ -40,19 +29,6 @@ class FingerprintCanvas extends Component {
   };
 
   componentDidMount() {
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    this.db = firebase.firestore();
-
-    // Get all fingerprints from DB
-    // this.db.collection("fingerprints").onSnapshot((snapshot) => {
-    //   const allFingerprints = snapshot.docs.map((doc) => ({
-    //     id: doc.id,
-    //     ...doc.data(),
-    //   }));
-    //   console.log(allFingerprints);
-    // });
-
     this.timer.start();
   }
 
@@ -75,8 +51,7 @@ class FingerprintCanvas extends Component {
       name,
       hash: fingerprint,
     };
-    // localStorage.setItem("canvasFingerprint", JSON.stringify(profile));
-    this.db.collection("fingerprints").add(profile);
+    Firebase.addProfile(profile);
   };
 
   renderGraphics = ({ canvas, ctx, width, height }) => {
@@ -154,7 +129,7 @@ class App extends Component {
           </span>{" "}
           to toggle canvas visibility.
         </small>
-        <FingerprintCanvas hidden={hidden} />
+        <Fingerprintr hidden={hidden} />
       </div>
     );
   }
