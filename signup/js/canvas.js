@@ -22,7 +22,7 @@ function create_canvas() {
     // Paint some text
     ctx.font = "24px Verdana";
     ctx.textAlign = "center";
-    ctx.fillText("Subscribe Now - Get Zucked!", width / 2, height / 1.5);
+    ctx.fillText("Subscribe Now!", width / 2, height / 1.5);
 
     return canvas;
 }
